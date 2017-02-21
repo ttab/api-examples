@@ -18,7 +18,7 @@ function subscribe() {
 
 function update() {
     console.log('update()');
-    request.get(host + "/punkt/v1/update?name=rs" + feed + "&ak=" + ak)
+    request.get(host + "/punkt/v1/update?ak=" + ak)
 	.on('error', function(err) {
 	    if (err) {
 		console.log(err);
