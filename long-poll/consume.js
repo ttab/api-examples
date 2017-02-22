@@ -1,46 +1,43 @@
 var request = require('request');
-var JSONStream = require('JSONStream');
-var es = require('event-stream');
-var assert = require('assert');
+var yargs = require('yargs');
 
-// read settings
-var ak = process.env['AK'];
-var feed = process.env['FEED'];
-var host = process.env['HOST'] || 'https://beta.tt.se'
-assert(ak, 'need access key');
-assert(feed, 'need feed');
+// parse command line args
+var args = require('yargs')
+    .env('LP')
+    .option('host', { default: 'https://beta.tt.se' })
+    .option('ak')
+    .option('feed')
+    .demandOption(['ak', 'feed'])
+    .argv;
 
-console.log('host: ' + host);
+console.log('host: ' + args.host);
 
 function subscribe() {
-    request.get(host + "/punkt/v1/subscribe?name=" + feed + "&ak=" + ak).on('error', console.error);
+    request.get({
+	url: args.host + "/punkt/v1/subscribe",
+	qs: { ak: args.ak, name: args.feed }
+    }).on('error', console.error);
 }
+
+var from = undefined;
 
 function update() {
     console.log('update()');
-    request.get(host + "/punkt/v1/update?ak=" + ak)
-	.on('error', function(err) {
-	    if (err) {
-		console.log(err);
-		update();
-	    }
-	})
-	.on('response', function(res) {
-	    if (res.statusCode == 200) {
-		console.log('connected');
-		res.pipe(JSONStream.parse('item'))
-		    .on('data', function(data) {
-			console.log('data', data.type, data.uri);
-		    })
-		    .on('close', function() {
-			console.log('close');
-			update();
-		    });
-	    } else {
-		console.error('update -- ' + res.statusCode);
-		update();
-	    }
-	});
+    request.get({
+	url: args.host + "/punkt/v1/update",
+	qs: { ak: args.ak }
+    }, function(err, res, body) {
+	if (err) {
+	    console.error(err);
+	} else if (res.statusCode == 200) {
+	    var json = JSON.parse(body);
+	    console.log('data', json.item.type, json.item.uri);
+	    from = json.item.uri;
+	} else {
+	    console.error('update -- ', res.statusCode);
+	}
+	update();
+    });
 }
 
 function start() {

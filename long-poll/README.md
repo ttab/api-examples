@@ -1,6 +1,5 @@
 # long poll example
 
     > npm install
-	> export AK=<my access key>
-	> export FEED=<name of my feed>
-    > node consume.js
+	> export LP_AK=<my access key>
+    > node consume.js --feed <my feed>
