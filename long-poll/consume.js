@@ -4,7 +4,7 @@ var yargs = require('yargs');
 // parse command line args
 var args = require('yargs')
     .env('LP')
-    .option('host', { default: 'https://beta.tt.se' })
+    .option('host', { default: 'https://app.tt.se' })
     .option('ak')
     .option('feed')
     .demandOption(['ak', 'feed'])
